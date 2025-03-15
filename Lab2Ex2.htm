@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta charset="UTF-8">
+<title>CS424, Lab 2, Exercise 2</title>
+<style>
+    body {
+        background-color: #DDDDDD;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+    canvas {
+        background-color: white;
+        display: block;
+    }
+    #canvasholder {
+        border:2px solid black;
+        float: left;
+    }
+</style>
+<script>
+    "use strict";
+
+    var canvas;
+    var graphics;
+
+    function randomColorString() {
+        var r = Math.floor(256*Math.random());
+        var g = Math.floor(256*Math.random());
+        var b = Math.floor(256*Math.random());
+        return "rgb(" + r + "," + g + "," + b + ")";
+    }
+
+    function addGraphicsContextExtras(graphics) {
+       
+    }
+
+    function installMouseHandler() {
+        var dragging = false;
+        var startX, startY;
+        var colorChoice;
+        var shapeChoice;
+
+        function doMouseDown(evt) {
+            if (evt.button != 0 || dragging) return;
+            var rect = canvas.getBoundingClientRect();
+            startX = evt.clientX - rect.left;
+            startY = evt.clientY - rect.top;
+            dragging = true;
+            shapeChoice = document.getElementById("shapeChoice").value;
+            colorChoice = document.getElementById("colorChoice").value;
+            document.addEventListener("mousemove", doMouseMove, false);
+            document.addEventListener("mouseup", doMouseUp, false);
+        }
+
+        function doMouseMove(evt) {
+            if (!dragging) return;
+            var rect = canvas.getBoundingClientRect();
+            var x = evt.clientX - rect.left;
+            var y = evt.clientY - rect.top;
+
+            graphics.fillStyle = colorChoice === "0" ? randomColorString() : colorChoice;
+
+            if (shapeChoice === "square") {
+                graphics.fillRect(x - 20, y - 20, 40, 40);
+            } else if (shapeChoice === "polygon") {
+                drawPolygon(x, y, 15, 20); 
+            }
+        }
+
+        function doMouseUp(evt) {
+            if (!dragging) return;
+            dragging = false;
+            document.removeEventListener("mousemove", doMouseMove, false);
+            document.removeEventListener("mouseup", doMouseUp, false);
+        }
+
+        canvas.addEventListener("mousedown", doMouseDown, false);
+    }
+
+    function drawPolygon(x, y, sides, radius) {
+        var step = Math.PI * 2 / sides; 
+        graphics.beginPath();
+        graphics.moveTo(x + radius * Math.cos(0), y + radius * Math.sin(0));
+        for (let i = 1; i <= sides; i++) {
+            graphics.lineTo(x + radius * Math.cos(i * step), y + radius * Math.sin(i * step));
+        }
+        graphics.closePath();
+        graphics.fill();
+    }
+
+    function clearCanvas() {
+        graphics.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function init() {
+        canvas = document.getElementById("canvas");
+        if (canvas.getContext) {
+            graphics = canvas.getContext("2d");
+            addGraphicsContextExtras(graphics);
+            installMouseHandler();
+        }
+    }
+
+    window.addEventListener('load', init);
+</script>
+</head>
+<body>
+<h2>CS424, Lab 2, Exercise 2</h2>
+
+<p>
+<b>Kolor:</b>
+<select id="colorChoice">
+<option value="0">Losowy</option>
+<option value="#FF0000">Czerwony</option>
+<option value="#00FF00">Zielony</option>
+<option value="#0000FF">Niebieski</option>
+<option value="#800080">Fioletowy</option>
+<option value="#FFFF00">Żółty</option>
+<option value="#FFA500">Pomarańczowy</option>
+<option value="#008080">Turkusowy</option>
+</select>
+<b>Kształt:</b>
+<select id="shapeChoice">
+<option value="square">Kwadrat</option>
+<option value="polygon">15-kąt foremny</option>
+</select>
+<button onclick="clearCanvas()">Wymaż</button>
+</p>
+
+<div id="canvasholder">
+<canvas id="canvas" width="800" height="600">Canvas not supported.</canvas>
+</div>
+</body>
+</html>
