@@ -5,7 +5,7 @@ pygame.init()
 
 screen_width, screen_height = 600, 600
 screen = pygame.display.set_mode((screen_width, screen_height))
-pygame.display.set_caption('Transformacje 15-kąta')
+pygame.display.set_caption('Transformacje 11-kąta')
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -134,9 +134,9 @@ while run:
         flip_horizontal = False
         position_offset = (0, 0)
 
-    # Zmieniamy liczbę kątów na 15
+    
     draw_polygon(
-        screen, BLACK, 15, 150,
+        screen, BLACK, 11, 150,
         (300 + position_offset[0], 300 + position_offset[1]),
         angle_offset, vertical_scale, horizontal_scale,
         vertical_shear, horizontal_shear,
