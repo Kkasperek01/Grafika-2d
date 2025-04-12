@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Graf Sceny - 11-kąty</title>
+</head>
+<body>
+  <canvas id="canvas" width="800" height="600" style="border:1px solid black;"></canvas>
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    class Node {
+      constructor() {
+        this.dzieci = [];
+      }
+      dodaj(w) {
+        this.dzieci.push(w);
+      }
+      update(t) {
+        this.dzieci.forEach(w => w.update?.(t));
+      }
+      draw(ctx) {
+        ctx.save();
+        this.dzieci.forEach(w => w.draw?.(ctx));
+        ctx.restore();
+      }
+    }
+
+    class TransformNode extends Node {
+      constructor(tx, ty, skala = 1, rot = 0) {
+        super();
+        this.tx = tx;
+        this.ty = ty;
+        this.skala = skala;
+        this.rot = rot;
+      }
+      draw(ctx) {
+        ctx.translate(this.tx, this.ty);
+        ctx.scale(this.skala, this.skala);
+        ctx.rotate(this.rot);
+        super.draw(ctx);
+        ctx.rotate(-this.rot);
+        ctx.scale(1 / this.skala, 1 / this.skala);
+        ctx.translate(-this.tx, -this.ty);
+      }
+    }
+
+    class Polygon extends Node {
+      constructor(x, y, r, boki, getRotacja) {
+        super();
+        this.x = x;
+        this.y = y;
+        this.r = r;
+        this.boki = boki;
+        this.getRotacja = getRotacja;
+      }
+      draw(ctx) {
+        const rot = this.getRotacja();
+        ctx.beginPath();
+        
+        for (let i = 0; i < this.boki; i++) {
+          const kat = i * 2 * Math.PI / this.boki + rot;
+          const px = this.x + this.r * Math.cos(kat);
+          const py = this.y + this.r * Math.sin(kat);
+          ctx.moveTo(this.x, this.y);
+          ctx.lineTo(px, py);  
+        }
+       
+        for (let i = 0; i < this.boki; i++) {
+          const kat = i * 2 * Math.PI / this.boki + rot;
+          const px = this.x + this.r * Math.cos(kat);
+          const py = this.y + this.r * Math.sin(kat);
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.stroke();
+      }
+    }
+
+    class Beam extends Node {
+      draw(ctx) {
+        ctx.fillStyle = 'red';
+        ctx.fillRect(-60, -10, 120, 20);
+      }
+    }
+
+    class Base extends Node {
+      constructor(kolor) {
+        super();
+        this.kolor = kolor;
+      }
+      draw(ctx) {
+        ctx.fillStyle = this.kolor;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(-20, 100);
+        ctx.lineTo(20, 100);
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
+
+    function stworzHustawke(x, y, skala, funkcjaObrotu, kolor) {
+      const root = new TransformNode(x, y, skala, 0);
+      const base = new Base(kolor);
+      root.dodaj(base);
+
+      const rotator = new TransformNode(0, 0, 1, 0);
+      rotator.update = function(t) {
+        this.rot = funkcjaObrotu(t);
+        this.dzieci.forEach(w => w.update?.(t));
+      };
+
+      root.dodaj(rotator);
+      rotator.dodaj(new Beam());
+
+      
+      rotator.dodaj(new Polygon(-60, 0, 30, 11, () => rotator.rot)); 
+      rotator.dodaj(new Polygon(60, 0, 30, 11, () => rotator.rot)); 
+
+      return root;
+    }
+
+    const scena = new Node();
+    scena.dodaj(stworzHustawke(200, 200, 0.5, t => Math.sin(t), 'purple'));
+    scena.dodaj(stworzHustawke(600, 150, 0.4, t => -Math.sin(t + 1), 'green'));
+    scena.dodaj(stworzHustawke(400, 400, 0.8, t => Math.sin(t + 2), 'blue'));
+
+    let t = 0;
+    function animuj() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      t += 0.02;
+      scena.update(t);
+      scena.draw(ctx);
+      requestAnimationFrame(animuj);
+    }
+    animuj();
+  </script>
+</body>
+</html>

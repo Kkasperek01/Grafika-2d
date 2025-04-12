@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>11-kąty - obracające się koła</title>
+</head>
+<body>
+  <canvas id="canvas" width="800" height="600" style="border:1px solid black;"></canvas>
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    function rysujWielokatObracany(x, y, promien, boki, rotacja, kolor, szprychy = true, katObrotu = 0) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(katObrotu);
+
+      ctx.beginPath();
+      const wierzcholki = [];
+
+      for (let i = 0; i < boki; i++) {
+        const kat = i * 2 * Math.PI / boki + rotacja;
+        const px = promien * Math.cos(kat);
+        const py = promien * Math.sin(kat);
+        wierzcholki.push({x: px, y: py});
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+
+      ctx.closePath();
+
+      
+      ctx.fillStyle = kolor;
+      ctx.fill();
+
+      
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = 'black';
+      ctx.stroke();
+
+      
+      if (szprychy) {
+        for (const punkt of wierzcholki) {
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(punkt.x, punkt.y);
+          ctx.stroke();
+        }
+      }
+
+      ctx.restore();
+    }
+
+    function rysujHustawke(x, y, skala, katHuśtawki, kolor, katObrotuKola) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.scale(skala, skala);
+
+      ctx.fillStyle = kolor;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(-20, 100);
+      ctx.lineTo(20, 100);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.rotate(katHuśtawki);
+      ctx.fillStyle = 'red';
+      ctx.fillRect(-60, -10, 120, 20);
+
+      rysujWielokatObracany(-60, 0, 30, 11, 0, 'white', true, katObrotuKola);
+      rysujWielokatObracany(60, 0, 30, 11, 0, 'white', true, katObrotuKola);
+
+      ctx.restore();
+    }
+
+    let t = 0;
+    function animuj() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      t += 0.02;
+
+      const katObrotu = t; 
+
+      rysujHustawke(200, 200, 0.5, Math.sin(t), 'purple', katObrotu);
+      rysujHustawke(600, 150, 0.4, -Math.sin(t + 1), 'green', katObrotu + 1);
+      rysujHustawke(400, 400, 0.8, Math.sin(t + 2), 'blue', katObrotu + 2);
+
+      requestAnimationFrame(animuj);
+    }
+
+    animuj();
+  </script>
+</body>
+</html>
